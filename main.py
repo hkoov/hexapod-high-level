@@ -21,9 +21,9 @@ while True:
 
     i += 1
 
-    angle1 = frac * 45
-    angle2 = 30 - frac * 30
-    angle3 = 30 + frac * 30
+    angle1 =0*(frac * 45)
+    angle2 = (45 + frac * 45)
+    angle3 = (67.5 + frac * 67.5)
 
     angle1_str = str(int(angle1))
     angle2_str = str(int(angle2))
@@ -39,4 +39,3 @@ while True:
     time.sleep(1/100)
 
 
-    
