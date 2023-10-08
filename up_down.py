@@ -1,13 +1,16 @@
 import math
 
 
-async def up_down_degrees (change, range, femur, tibia, alpha, beta):
+def up_down_degrees (change, range, femur, tibia, alpha, beta):
+    #change = min(max(change, 0), 1)  # Bound the change fraction between 0 and 1
+    
     alpha_rad = alpha * math.pi / 180
-    beta_rad = beta * math.pi / 180
+    beta_rad = (beta + 25)* math.pi / 180
     
     length = math.sqrt(femur**2 + tibia**2 - 2 * femur * tibia * math.cos(beta_rad))
 
-    theta_rad = math.pi - alpha_rad - beta_rad
+    gamma_rad = math.asin((tibia * math.sin(beta_rad)) / length)
+    theta_rad = math.pi - alpha_rad - gamma_rad
 
     height = length * math.cos(theta_rad)
     extent = length * math.sin(theta_rad)
@@ -22,7 +25,9 @@ async def up_down_degrees (change, range, femur, tibia, alpha, beta):
     alpha_new = math.pi - theta_new - gamma_new
 
     alpha_new_deg = 180 * alpha_new / math.pi
-    beta_new_deg = 180 * beta_new / math.pi
+    beta_new_deg = 180 * beta_new / math.pi - 25
 
-    return alpha_new_deg, beta_new_deg
+    print(alpha_rad, alpha_new, beta_rad, beta_new)
+
+    return [alpha_new_deg, beta_new_deg]
 

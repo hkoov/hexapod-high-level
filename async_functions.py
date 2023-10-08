@@ -4,9 +4,9 @@ async def write_angles(ser0, ser1, angle1, angle2, angle3):
     """
     Takes two serial objects and three integer angles (in degrees), and writes the three degrees to the nine motors controlled by each controller.
     """
-    angle1 = 0
-    angle2 = 0
-    angle3 = 0
+    #angle1 = 0
+    #angle2 = 0
+    #angle3 = 0
 
     angle1_str = str(int(angle1))
     angle2_str = str(int(angle2))
