@@ -1,41 +1,30 @@
 import serial
 import math
 import time
+import asyncio
+import xbox_control_inputs
+import up_down
+import async_functions
 
 i = 0
 
 ser0 = serial.Serial('/dev/ttyACM0', 115200, timeout=0.050)
 ser1 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
 
-while True:
-    angle1 = 0
-    angle2 = 0
-    angle3 = 0
+angle1 = 0
+angle2 = 30
+angle3 = 30
 
-    if i == 360:
-        i = 0
+async_functions.write_angles(ser0, ser1, angle1, angle2, angle3)
 
-    rads = (i / 360) * 2 * math.pi
+controller_path = xbox_control_inputs.find_controller()
 
-    frac = math.sin(rads)
+height_range = 0
 
-    i += 1
+async def main ():
+    while True:
+        await asyncio.gather(xbox_control_inputs.controller_inputs(controller_path, height_range), 
+                             up_down.up_down_degrees(height_range, 50, 80, 132, angle2, angle3), 
+                             async_functions.write_angles(ser0, ser1, angle1, angle2, angle3))
 
-    angle1 =0*(frac * 45)
-    angle2 = (45 + frac * 45)
-    angle3 = (67.5 + frac * 67.5)
-
-    angle1_str = str(int(angle1))
-    angle2_str = str(int(angle2))
-    angle3_str = str(int(angle3))
-
-    string1 = angle1_str + "," + angle2_str + "," + angle3_str + "," + angle1_str + "," + angle2_str + "," + angle3_str + "," + angle1_str + "," + angle2_str + "," + angle3_str
-
-    print(string1)
-
-    ser0.write(str.encode(string1 + "\n"))
-    ser1.write(str.encode(string1 + "\n"))
-
-    time.sleep(1/100)
-
-
+asyncio.run(main())
