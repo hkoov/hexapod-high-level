@@ -3,7 +3,7 @@ import math
 import time
 import asyncio
 import xbox_control_inputs
-import up_down
+import translations
 import async_functions
 
 i = 0
@@ -22,7 +22,7 @@ controller_path = xbox_control_inputs.find_controller()
 height_change = 0
 
 async def angle_change(height_change, height_range, femur, tibia, angle2, angle3):
-    angle2, angle3 = up_down.up_down_degrees(height_change, height_range, femur, tibia, angle2, angle3)
+    angle2, angle3 = translations.up_down_degrees(height_change, height_range, femur, tibia, angle2, angle3)
     await asyncio.sleep(0.01)
 
 async def modify_height (height_change):
@@ -32,7 +32,7 @@ async def modify_height (height_change):
     
 async def process():
     height_change = await xbox_control_inputs.controller_inputs(controller_path)
-    angle_2, angle_3 = up_down.up_down_degrees(height_change, 100, 80, 132, angle2, angle3)
+    angle_2, angle_3 = translations.up_down_degrees(height_change, 100, 80, 132, angle2, angle3)
     await async_functions.write_angles(ser0, ser1, angle1, angle_2, angle_3)
 
 

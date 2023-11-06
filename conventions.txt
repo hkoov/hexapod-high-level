@@ -1,0 +1,14 @@
+ser0 is for the LEFT half of the robot
+ser1 is for RIGHT
+
+Motor 1 is at the front, 3 is at the back
+
+Joint 1 articulates the coxa
+Joint 2 articulates the femur
+Joint 3 articulates the tibia
+
+
+Have a separate module that reads the controller events and writes them to an object
+
+The main loop then reads that object and translates it into the desired movements and joint angles
+
