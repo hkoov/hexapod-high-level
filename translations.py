@@ -15,7 +15,7 @@ length = distance from
 
 
 
-def up_down_degrees (change, range, femur, tibia, alpha, beta):
+def up_down_degrees (change, range, femur, tibia, beta, gamma):
     """
     This function returns new joint 2 and 3 angles based on the desired height change
 
@@ -24,41 +24,47 @@ def up_down_degrees (change, range, femur, tibia, alpha, beta):
     range: The maximum change in height (up or down) in millimetres
     femur: Femur length in millimetres
     tibia: Tibia length in millimetres
-    alpha: Current joint 2 angle in degrees
-    beta: Current joint 3 angle in degrees
+    beta: Current joint 2 angle in degrees
+    gamma: Current joint 3 angle in degrees
 
     Outputs:
-    alpha_new_deg: Resultant joint 2 angle in degrees
-    beta_new_deg: Resultant joint 3 angle in degrees
+    beta_new_deg: Resultant joint 2 angle in degrees
+    gamma_new_deg: Resultant joint 3 angle in degrees
 
     """
+    # Get beta and gamma in radians. 
+    beta_rad = beta * math.pi / 180
+    gamma_rad = (gamma + 25)* math.pi / 180     # Add 25 degrees on to gamma, to allow for the offset of the tip from the tibia
     
-    alpha_rad = alpha * math.pi / 180
-    beta_rad = (beta + 25)* math.pi / 180
-    
-    length = math.sqrt(femur**2 + tibia**2 - 2 * femur * tibia * math.cos(beta_rad))
+    # Calculate the length: distance from joint 2 to the tip
+    length = math.sqrt(femur**2 + tibia**2 - 2 * femur * tibia * math.cos(gamma_rad))    
 
-    gamma_rad = math.asin((tibia * math.sin(beta_rad)) / length)
-    theta_rad = math.pi - alpha_rad - gamma_rad
+    # Calculate theta (angle from joint 2 to tip) and phi (180 degrees - beta - theta)
+    theta_rad = math.asin((tibia * math.sin(gamma_rad)) / length)
+    phi_rad = math.pi - beta_rad - theta_rad
 
-    height = length * math.cos(theta_rad)
-    extent = length * math.sin(theta_rad)
+    # Calculate height and extent based on length and phi
+    height = length * math.cos(phi_rad)
+    extent = length * math.sin(phi_rad)
 
+    # Change the height based on the change fraction and the range
     height_new = height + change * range
 
+    # This gives us the new length from joint 2 to the tip
     length_new = math.sqrt(height_new**2 + extent**2)
 
-    beta_new = math.acos((length_new**2 - femur**2 - tibia**2) / (-2 * femur * tibia))
-    gamma_new = math.asin((tibia * math.sin(beta_new)) / length_new)
-    theta_new = math.acos(height_new / length_new)
-    alpha_new = math.pi - theta_new - gamma_new
+    # Calculate the new joint angles based on the new height and length
+    gamma_new = math.acos((length_new**2 - femur**2 - tibia**2) / (-2 * femur * tibia))
+    theta_new = math.asin((tibia * math.sin(gamma_new)) / length_new)
+    phi_new = math.acos(height_new / length_new)
+    beta_new = math.pi - phi_new - theta_new
 
-    alpha_new_deg = 180 * alpha_new / math.pi
-    beta_new_deg = 180 * beta_new / math.pi - 25
+    # Convert the new joint angles back to degrees
+    beta_new_deg = 180 * beta_new / math.pi
+    gamma_new_deg = 180 * gamma_new / math.pi - 25  # Now remove the 25 degree offset from the joint angle to get the motor angle
 
-    print(alpha_rad, alpha_new, beta_rad, beta_new)
-
-    return [alpha_new_deg, beta_new_deg]
+    # Return the new joint angles in degrees
+    return [beta_new_deg, gamma_new_deg]
 
 
 def lef_right_degrees (change, range, coxa, femur, tibia, alpha, beta, gamma):
