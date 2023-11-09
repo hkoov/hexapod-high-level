@@ -1,23 +1,8 @@
 import math
 
-"""
-Conventions:
-alpha = joint 1 angle
-beta = joint 2 angle
-gamma = joint 3 angle
-
-
-length = distance from 
-
-
-
-"""
-
-
-
-def up_down_degrees (change, range, femur, tibia, beta, gamma):
+def roll_degrees (change, range, coxa, femur, tibia, alpha, beta, gamma):
     """
-    This function returns new joint 2 and 3 angles based on the desired height change
+    This function returns new joint angles based on the desired roll change
 
     Inputs:
     change: Value between -1 and 1, dictating the height change from 0 (no adjustment)
