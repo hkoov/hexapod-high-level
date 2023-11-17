@@ -54,6 +54,8 @@ def up_down_degrees (change, range, femur, tibia, beta, gamma):
     length_new = math.sqrt(height_new**2 + extent**2)
 
     # Calculate the new joint angles based on the new height and length
+    print(change*range)
+    print(((length_new**2 - femur**2 - tibia**2) / (-2 * femur * tibia)))
     gamma_new = math.acos((length_new**2 - femur**2 - tibia**2) / (-2 * femur * tibia))
     theta_new = math.asin((tibia * math.sin(gamma_new)) / length_new)
     phi_new = math.acos(height_new / length_new)
