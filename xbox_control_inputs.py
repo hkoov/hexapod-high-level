@@ -2,6 +2,9 @@ import asyncio
 import evdev
 
 def find_controller():
+    # Gets the path to the XBox controller
+    # Looks through all the devices found using the evdev path, and finds the one containing "Xbox"
+    # Returns that path to use in the loop
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
 
     for device in devices:
