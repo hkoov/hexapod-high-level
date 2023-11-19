@@ -6,6 +6,7 @@ import xbox_control_inputs
 import translations
 import write_functions
 import robot_geometry
+import evdev
 
 
 # Initialise serial connections. Still need to figure out left/right
@@ -14,11 +15,11 @@ ser1 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
 
 
 # Set starting angles and write them to the motors
-angle1 = 0
-angle2 = 30
-angle3 = 30
+angle1_default = 0
+angle2_default = 30
+angle3_default = 30
 
-write_functions.write_angles(ser0, ser1, angle1, angle2, angle3)
+#write_functions.write_angles(ser0, ser1, angle1_default, angle2_default, angle3_default)
 
 
 # Initialise the height change parameter and height change range
@@ -38,14 +39,21 @@ controller_path = xbox_control_inputs.find_controller()
 
 controller = xbox_control_inputs.controller(controller_path)
 
-while True:
-    try:
-        controller.update()
-    except:
-        continue
-    height_change = 1 - controller.L_y_axis/65535
-    angle2, angle3 = translations.up_down_degrees(height_change, height_range, femur, tibia, angle2, angle3) 
-    write_functions.write_angles(ser0, ser1, angle1, angle2, angle3)
+
+# Enclose the angle calcs and serial write instructions in this async function 
+# This gives a continuous stream of events which are then used to change the inputs
+# Additional movements need to be coded after the controller.update(event) line
+async def helper(dev_path, angle1_default, angle2_default, angle3_default):
+    dev = evdev.InputDevice(dev_path)
+    async for event in dev.async_read_loop():
+        controller.update(event)
+
+        height_change = 1 - controller.L_y_axis/65535
+        angle2, angle3 = translations.up_down_degrees(height_change, height_range, femur, tibia, angle2_default, angle3_default) 
+        write_functions.write_angles(ser0, ser1, angle1_default, angle2, angle3)
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(helper(controller.path, angle1_default, angle2_default, angle3_default))
 
 """
 async def angle_change(height_change, height_range, femur, tibia, angle2, angle3):
