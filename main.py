@@ -7,6 +7,7 @@ import translations
 import write_functions
 import robot_geometry
 import evdev
+import copy
 
 
 # Initialise serial connections. Still need to figure out left/right
@@ -15,15 +16,27 @@ ser1 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
 
 
 # Set the default angles for each motor. Translations and rotations will be applied sequentially to this starting position
-angle1_default = 0
-angle2_default = 30
-angle3_default = 30
+l1_angles = [45, 30, 30]
+r1_angles = [45, 30, 30]
+l2_angles = [90, 30, 30]
+r2_angles = [90, 30, 30]
+l3_angles = [135, 30, 30]
+r3_angles = [135, 30, 30]
 
+angle_defaults = [l1_angles, r1_angles, l2_angles, r2_angles, l3_angles, r3_angles]
+
+write_functions.write_angles(ser0, ser1, angle_defaults)
 
 # Initialise the height change parameter and height change range
 # (probably need some others for the other translations/rotations, and velocity inputs for walking)
+y_trans_change = 0
+y_trans_range = 50
+
+x_trans_change = 0
+x_trans_range = 50
+
 z_trans_change = 0
-z_trans_range = 100
+z_trans_range = 50
 
 
 # Define parameters for the robot geometry
@@ -41,31 +54,37 @@ controller = xbox_control_inputs.controller(controller_path)
 # Enclose the angle calcs and serial write instructions in this async function 
 # This gives a continuous stream of events which are then used to change the inputs
 # Additional movements need to be coded after the controller.update(event) line
-async def helper(dev_path, angle1_default, angle2_default, angle3_default):
+async def helper(dev_path, angle_defaults):
     dev = evdev.InputDevice(dev_path)
     async for event in dev.async_read_loop():
         # Update the controller state based on the event values read
         controller.update(event)
 
-        
-        # Define the angles to be their default values to start
-        angle1 = angle1_default
-        angle2 = angle2_default
-        angle3 = angle3_default
+
+        # Reset the leg positions to their default values
+        legs = copy.deepcopy(angle_defaults)
 
         ### THIS IS WHERE THE OTHER TRANSLATIONS AND ROTATIONS WILL NEED TO BE APPLIED
 
-        # Calculate the Z-axis translation and calculate the resulting angles
-        z_trans_change = 1 - controller.L_y_axis/65535
-        angle2, angle3 = translations.up_down_degrees(z_trans_change, z_trans_range, femur, tibia, angle2, angle3) 
-        
+        # Calculate the translations to be applied (all between -1 and 1)
+        y_trans_change = 1 - 2 * controller.R_y_axis/65535
+        x_trans_change = 1 - 2 * controller.R_x_axis/65535
+        z_trans_change = 1 - 2 * controller.L_y_axis/65535
+
+        for i in range(6):
+            leg = legs[i]
+            legs[i][0], legs[i][1], legs[i][2] = translations.forward_back_degrees(y_trans_change, y_trans_range, coxa, femur, tibia, leg)
+            #legs[i][0], legs[i][1], legs[i][2] = translations.right_left_degrees(x_trans_change, x_trans_range, coxa, femur, tibia, leg)
+            legs[i][0], legs[i][1], legs[i][2] = translations.up_down_degrees(z_trans_change, z_trans_range, coxa, femur, tibia, leg)
+            
+        print(legs)
         
         # Finally write the angles to the motors
-        write_functions.write_angles(ser0, ser1, angle1, angle2, angle3)
+        write_functions.write_angles(ser0, ser1, legs)
 
 
 # Generate an event loop using the defined async function
 loop = asyncio.get_event_loop()
 
 # Run the loop
-loop.run_until_complete(helper(controller.path, angle1_default, angle2_default, angle3_default))
+loop.run_until_complete(helper(controller.path, angle_defaults))
