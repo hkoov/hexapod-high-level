@@ -16,12 +16,12 @@ ser1 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
 
 
 # Set the default angles for each motor. Translations and rotations will be applied sequentially to this starting position
-l1_angles = [45, 30, 30]
-r1_angles = [45, 30, 30]
-l2_angles = [90, 30, 30]
-r2_angles = [90, 30, 30]
-l3_angles = [135, 30, 30]
-r3_angles = [135, 30, 30]
+l1_angles = [45, 45, 45]
+r1_angles = [45, 45, 45]
+l2_angles = [90, 45, 45]
+r2_angles = [90, 45, 45]
+l3_angles = [135, 45, 45]
+r3_angles = [135, 45, 45]
 
 angle_defaults = [l1_angles, r1_angles, l2_angles, r2_angles, l3_angles, r3_angles]
 
@@ -77,7 +77,7 @@ async def helper(dev_path, angle_defaults):
             #legs[i][0], legs[i][1], legs[i][2] = translations.right_left_degrees(x_trans_change, x_trans_range, coxa, femur, tibia, leg)
             legs[i][0], legs[i][1], legs[i][2] = translations.up_down_degrees(z_trans_change, z_trans_range, coxa, femur, tibia, leg)
             
-        print(legs)
+        print(legs[0][0])
         
         # Finally write the angles to the motors
         write_functions.write_angles(ser0, ser1, legs)

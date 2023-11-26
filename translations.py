@@ -120,9 +120,10 @@ def forward_back_degrees (change, range, coxa, femur, tibia, angles):
     xy_dist_new = math.sqrt(x_dist ** 2 + y_dist_new ** 2)
 
     # This gives us the new coxa angle:
-    alpha_new = math.asin(x_dist / xy_dist_new)
-
-
+    alpha_new = math.acos(y_dist_new / xy_dist_new) # Take the acos of y/xy instead of the asin of x/xy, since that will give us the >90 degree angle for the back leg
+    print(y_dist_new)
+    print(xy_dist_new)
+    print(str(alpha_new / math.pi * 180))
     # Calculate height and extent based on length and phi
     height = length * math.cos(phi_rad)
     extent = length * math.sin(phi_rad) # note that extent = xy_dist_new - coxa
@@ -196,7 +197,7 @@ def right_left_degrees (change, range, coxa, femur, tibia, angles):
     xy_dist_new = math.sqrt(x_dist_new ** 2 + y_dist ** 2)
 
     # This gives us the new coxa angle:
-    alpha_new = math.asin(x_dist / xy_dist_new)
+    alpha_new = math.acos(y_dist / xy_dist_new) # Take the acos of y/xy instead of the asin of x/xy, since that will give us the >90 degree angle for the back leg
 
 
     # Calculate height and extent based on length and phi
