@@ -114,7 +114,7 @@ def forward_back_degrees (change, range, coxa, femur, tibia, angles):
     y_dist = xy_dist * math.cos(alpha_rad)
 
     # Calculate the movement along the y-axis in millimetres
-    y_dist_new = y_dist + change * range
+    y_dist_new = y_dist - change * range
 
     # Now get the new xy_distance
     xy_dist_new = math.sqrt(x_dist ** 2 + y_dist_new ** 2)
