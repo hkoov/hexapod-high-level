@@ -4,15 +4,18 @@ import time
 import asyncio
 import xbox_control_inputs
 import translations
+import rotations
 import write_functions
 import robot_geometry
 import evdev
 import copy
 
+### DEBUG FLAG
+debug_flag = True
 
 # Initialise serial connections. Still need to figure out left/right
-ser1 = serial.Serial('/dev/ttyACM0', 115200, timeout=0.050)
-ser0 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
+ser0 = serial.Serial('/dev/ttyACM0', 115200, timeout=0.050)
+ser1 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
 
 
 # Set the default angles for each motor. Translations and rotations will be applied sequentially to this starting position
@@ -25,7 +28,17 @@ r3_angles = [135, 45, 45]
 
 angle_defaults = [l1_angles, r1_angles, l2_angles, r2_angles, l3_angles, r3_angles]
 
-write_functions.write_angles(ser0, ser1, angle_defaults)
+write_functions.write_angles(ser0, ser1, angle_defaults, debug=debug_flag)
+
+# Set the joint offsets
+l1_offsets = [robot_geometry.x_offsets[1], robot_geometry.y_offsets[0]]
+r1_offsets = [robot_geometry.x_offsets[2], robot_geometry.y_offsets[0]]
+l2_offsets = [robot_geometry.x_offsets[0], robot_geometry.y_offsets[1]]
+r2_offsets = [robot_geometry.x_offsets[3], robot_geometry.y_offsets[1]]
+l3_offsets = [robot_geometry.x_offsets[1], robot_geometry.y_offsets[2]]
+r3_offsets = [robot_geometry.x_offsets[2], robot_geometry.y_offsets[2]]
+
+joint_offsets = [l1_offsets, r1_offsets, l2_offsets, r2_offsets, l3_offsets, r3_offsets]
 
 # Initialise the height change parameter and height change range
 # (probably need some others for the other translations/rotations, and velocity inputs for walking)
@@ -37,6 +50,9 @@ x_trans_range = 50
 
 z_trans_change = 0
 z_trans_range = 50
+
+roll_change = 0
+roll_range = 15
 
 
 # Define parameters for the robot geometry
@@ -50,7 +66,6 @@ controller_path = xbox_control_inputs.find_controller()
 
 controller = xbox_control_inputs.controller(controller_path)
 
-
 # Enclose the angle calcs and serial write instructions in this async function 
 # This gives a continuous stream of events which are then used to change the inputs
 # Additional movements need to be coded after the controller.update(event) line
@@ -60,26 +75,27 @@ async def helper(dev_path, angle_defaults):
         # Update the controller state based on the event values read
         controller.update(event)
 
-
         # Reset the leg positions to their default values
         legs = copy.deepcopy(angle_defaults)
 
-        ### THIS IS WHERE THE OTHER TRANSLATIONS AND ROTATIONS WILL NEED TO BE APPLIED
-
         # Calculate the translations to be applied (all between -1 and 1)
-        y_trans_change = 1 - 2 * controller.R_y_axis/65535
-        x_trans_change = 1 - 2 * controller.R_x_axis/65535
+        y_trans_change = 0 #1 - 2 * controller.R_y_axis/65535
+        x_trans_change = 0 #1 - 2 * controller.R_x_axis/65535
         z_trans_change = 1 - 2 * controller.L_y_axis/65535
+
+        roll_change = 1 - 2 * controller.R_x_axis/65535
 
         for i in range(6):
             leg = legs[i]
             legs[i][0], legs[i][1], legs[i][2] = translations.forward_back_degrees(y_trans_change, y_trans_range, coxa, femur, tibia, leg)
             legs[i][0], legs[i][1], legs[i][2] = translations.right_left_degrees(x_trans_change, x_trans_range, coxa, femur, tibia, leg)
             legs[i][0], legs[i][1], legs[i][2] = translations.up_down_degrees(z_trans_change, z_trans_range, coxa, femur, tibia, leg)
-        
+
+            legs[i][0], legs[i][1], legs[i][2] = rotations.roll(roll_change, roll_range, joint_offsets[i][0], joint_offsets[i][1], coxa, femur, tibia, leg)
+
         
         # Finally write the angles to the motors
-        write_functions.write_angles(ser0, ser1, legs)
+        write_functions.write_angles(ser0, ser1, legs, debug=debug_flag)
 
 
 # Generate an event loop using the defined async function

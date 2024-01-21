@@ -90,6 +90,9 @@ class controller:
             elif event.value == 0:
                 self.D_left = 0
                 self.D_right = 0
+        
+        print(self.L_x_axis)
+        print(self.L_y_axis)
             
 
 async def controller_inputs (controller_path):
