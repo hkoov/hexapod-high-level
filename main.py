@@ -11,11 +11,11 @@ import evdev
 import copy
 
 ### DEBUG FLAG
-debug_flag = True
+debug_flag = False
 
 # Initialise serial connections. Still need to figure out left/right
-ser0 = serial.Serial('/dev/ttyACM0', 115200, timeout=0.050)
-ser1 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
+ser1 = serial.Serial('/dev/ttyACM2', 115200, timeout=0.050)
+ser0 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
 
 
 # Set the default angles for each motor. Translations and rotations will be applied sequentially to this starting position
@@ -52,8 +52,13 @@ z_trans_change = 0
 z_trans_range = 50
 
 roll_change = 0
-roll_range = 15
+roll_range = 15     # Specified in degrees
 
+pitch_change = 0
+pitch_range = 15     # Specified in degrees
+
+yaw_change = 0
+yaw_range = 15     # Specified in degrees
 
 # Define parameters for the robot geometry
 coxa = robot_geometry.coxa
@@ -79,11 +84,13 @@ async def helper(dev_path, angle_defaults):
         legs = copy.deepcopy(angle_defaults)
 
         # Calculate the translations to be applied (all between -1 and 1)
-        y_trans_change = 0 #1 - 2 * controller.R_y_axis/65535
-        x_trans_change = 0 #1 - 2 * controller.R_x_axis/65535
-        z_trans_change = 1 - 2 * controller.L_y_axis/65535
+        y_trans_change = 0#1 - 2 * controller.R_y_axis/65535
+        x_trans_change = 0#1 - 2 * controller.R_x_axis/65535
+        z_trans_change = 0#1 - 2 * controller.L_y_axis/65535
 
         roll_change = 1 - 2 * controller.R_x_axis/65535
+        pitch_change = 1 - 2 * controller.R_y_axis/65535
+        yaw_change = 1 - 2 * controller.L_y_axis/65535
 
         for i in range(6):
             leg = legs[i]
@@ -92,6 +99,8 @@ async def helper(dev_path, angle_defaults):
             legs[i][0], legs[i][1], legs[i][2] = translations.up_down_degrees(z_trans_change, z_trans_range, coxa, femur, tibia, leg)
 
             legs[i][0], legs[i][1], legs[i][2] = rotations.roll(roll_change, roll_range, joint_offsets[i][0], joint_offsets[i][1], coxa, femur, tibia, leg)
+            legs[i][0], legs[i][1], legs[i][2] = rotations.pitch(pitch_change, pitch_range, joint_offsets[i][0], joint_offsets[i][1], coxa, femur, tibia, leg)
+            legs[i][0], legs[i][1], legs[i][2] = rotations.yaw(yaw_change, yaw_range, joint_offsets[i][0], joint_offsets[i][1], coxa, femur, tibia, leg)
 
         
         # Finally write the angles to the motors

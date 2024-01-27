@@ -78,15 +78,15 @@ def roll (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     # psi is the angle of the total length relative to the vertical through the origin
     # psi_x is this angle projected onto the X-Z plane
     # psi_y is this angle projected onto the Y-Z plane
-    psi = math.acos(height / length_total)
-    psi_x = math.acos(height / xz_length_total)
-    psi_y = math.acos(height / yz_length_total)
+    psi = math.asin(extent_total / length_total)
+    psi_x = math.asin(x_total / xz_length_total)
+    psi_y = math.asin(y_total / yz_length_total)
 
     # Calculate the change in roll angle in degrees
     roll = change * range
 
     # Now get the new psi_x
-    psi_x_new = psi_x + roll
+    psi_x_new = psi_x + (roll / 180) * math.pi
 
     # This gives us the new height and total x distance:
     height_new = xz_length_total * math.cos(psi_x_new)
@@ -96,8 +96,8 @@ def roll (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     x_dist_new = x_total_new - x_offset
     xy_dist_new = math.sqrt(x_dist_new ** 2 + y_dist ** 2)
 
-    # Calculate the resulting new alpha from this, using the original y_dist
-    alpha_new = alpha_rad * math.acos(y_dist / xy_dist_new) / math.acos(y_dist / xy_dist) ## Take the acos of y/xy instead of the asin of x/xy, since that will give us the >90 degree angle for the back leg
+    # Calculate the resulting new alpha from this. Apply a scaling approach since the original angle includes the sign
+    alpha_new = alpha_rad * math.acos(y_dist / xy_dist_new) / math.acos(y_dist / xy_dist) 
     
     # Calculate the new length (from joint 2 to the tip)
     extent_new = xy_dist_new - coxa
@@ -106,7 +106,7 @@ def roll (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     # Use these to define new joint 2 and 3 angles
     gamma_new = math.acos((length_new**2 - femur**2 - tibia**2) / (-2 * femur * tibia))
     theta_new = math.asin((tibia * math.sin(gamma_new)) / length_new)
-    phi_new = math.acos(height / length_new)
+    phi_new = math.acos(height_new / length_new)
     beta_new = math.pi - phi_new - theta_new
 
     # Convert the new joint angles back to degrees
@@ -118,30 +118,33 @@ def roll (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     return [alpha_new_deg, beta_new_deg, gamma_new_deg]
 
 
-def forward_back_degrees (change, range, coxa, femur, tibia, angles):
+def pitch (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     """
-    This function returns new joint 1, 2, and 3 angles based on the desired forward/back
-    movement (i.e., along the Y axis)
+    This function returns new joint 1, 2 and, 3 angles based on the desired pitch angle
 
     Inputs:
-    change: Value between -1 and 1, dictating the forward/back change from 0 (no adjustment)
-    range: The maximum change in distance (forward or backward) in millimetres
-     
+    change: Value between -1 and 1, dictating the pitch change from 0 (no adjustment)
+    range: The maximum change in a pitch angle (in degrees)
+    x_offset: Left/right distance from the centre of the body to joint 1, where left is negative and right is positive 
+    y_offset: Forward/backward distance from the centre of the body to joint 1, where forward is positive and backward is negative
     coxa: Coxa length in millimetres
     femur: Femur length in millimetres
     tibia: Tibia length in millimetres
-
     angles: A list of angles containing the following:
         alpha: Current joint 1 angle in degrees
         beta: Current joint 2 angle in degrees
         gamma: Current joint 3 angle in degrees
 
-    
     Outputs:
-    alpha_new_deg: Resultant joint 1 angle in degrees
+    alpha: Resultant joint 1 angle in degrees
     beta_new_deg: Resultant joint 2 angle in degrees
     gamma_new_deg: Resultant joint 3 angle in degrees
 
+    Conventions:
+    length refers to the distance (in all axes) from joint 2 to the tip of the leg
+    total_length refers to the distance (in all axes) from the origin of the robot's body to the tip of the leg
+    extent refers to the distance (in X and Y) from joint 2 to the tip of the leg
+    total_length refers to the distance (in X and Y) from the origin of the robot's body to the tip of the leg
     """
     # Get the angles in radians. 
     alpha_rad = angles[0] * math.pi / 180
@@ -155,33 +158,59 @@ def forward_back_degrees (change, range, coxa, femur, tibia, angles):
     theta_rad = math.asin((tibia * math.sin(gamma_rad)) / length)
     phi_rad = math.pi - beta_rad - theta_rad
 
-    # Calculate the extent: distance from joint 1 to the tip in the X/Y plane, as well as the x, y, and xy distances from joint 1 to the tip
+    # Calculate the height. The vertical height of joint 2 is the same as the height of the origin
+    height = length * math.cos(phi_rad)
+
+    # Calculate the extent: distance from joint 2 to the tip in the X/Y plane, as well as the x, y, and xy distances from joint 1 to the tip
     extent = length * math.sin(phi_rad)
     xy_dist = coxa + extent
     x_dist = xy_dist * math.sin(alpha_rad)
     y_dist = xy_dist * math.cos(alpha_rad)
 
-    # Calculate the movement along the y-axis in millimetres
-    y_dist_new = y_dist - change * range
+    # Now get the total extents and lengths - i.e. from the origin
+    x_total = x_dist + x_offset
+    y_total = y_dist + y_offset
 
-    # Now get the new xy_distance
+    extent_total = math.sqrt(x_total ** 2 + y_total ** 2)
+    length_total = math.sqrt(extent_total ** 2 + height ** 2)
+
+    # Get the projection of the total length onto the X-Z and Y-Z planes
+    xz_length_total = math.sqrt(x_total ** 2 + height ** 2)
+    yz_length_total = math.sqrt(y_total ** 2 + height ** 2)
+
+    # Calculate the psi angles: 
+    # psi is the angle of the total length relative to the vertical through the origin
+    # psi_x is this angle projected onto the X-Z plane
+    # psi_y is this angle projected onto the Y-Z plane
+    psi = math.asin(extent_total / length_total)
+    psi_x = math.asin(x_total / xz_length_total)
+    psi_y = math.asin(y_total / yz_length_total)
+
+    # Calculate the change in pitch angle in degrees
+    pitch = change * range
+
+    # Now get the new psi_y
+    psi_y_new = psi_y + (pitch / 180) * math.pi
+
+    # This gives us the new height and total x distance:
+    height_new = yz_length_total * math.cos(psi_y_new)
+    y_total_new = yz_length_total * math.sin(psi_y_new)
+    
+    # Get the new Y and XY distances
+    y_dist_new = y_total_new - y_offset
     xy_dist_new = math.sqrt(x_dist ** 2 + y_dist_new ** 2)
 
-    # This gives us the new coxa angle:
-    alpha_new = alpha_rad * math.acos(y_dist_new / xy_dist_new) / math.acos(y_dist / xy_dist) # Take the acos of y/xy instead of the asin of x/xy, since that will give us the >90 degree angle for the back leg
+    # Calculate the resulting new alpha from this. Apply a scaling approach since the original angle includes the sign
+    alpha_new = alpha_rad * math.acos(y_dist_new / xy_dist_new) / math.acos(y_dist / xy_dist) 
     
-    # Calculate height and extent based on length and phi
-    height = length * math.cos(phi_rad)
-    extent = length * math.sin(phi_rad) # note that extent = xy_dist_new - coxa
-
     # Calculate the new length (from joint 2 to the tip)
     extent_new = xy_dist_new - coxa
-    length_new = math.sqrt(height ** 2 + extent_new ** 2)
+    length_new = math.sqrt(height_new ** 2 + extent_new ** 2)
 
     # Use these to define new joint 2 and 3 angles
     gamma_new = math.acos((length_new**2 - femur**2 - tibia**2) / (-2 * femur * tibia))
     theta_new = math.asin((tibia * math.sin(gamma_new)) / length_new)
-    phi_new = math.acos(height / length_new)
+    phi_new = math.acos(height_new / length_new)
     beta_new = math.pi - phi_new - theta_new
 
     # Convert the new joint angles back to degrees
@@ -193,30 +222,33 @@ def forward_back_degrees (change, range, coxa, femur, tibia, angles):
     return [alpha_new_deg, beta_new_deg, gamma_new_deg]
 
 
-def right_left_degrees (change, range, coxa, femur, tibia, angles):
+def yaw (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     """
-    This function returns new joint 1, 2, and 3 angles based on the desired right/left
-    movement (i.e., along the X axis)
+    This function returns new joint 1, 2 and, 3 angles based on the desired yaw angle
 
     Inputs:
-    change: Value between -1 and 1, dictating the right/left change from 0 (no adjustment)
-    range: The maximum change in distance (right or left) in millimetres
-     
+    change: Value between -1 and 1, dictating the yaw change from 0 (no adjustment)
+    range: The maximum change in a yaw angle (in degrees)
+    x_offset: Left/right distance from the centre of the body to joint 1, where left is negative and right is positive 
+    y_offset: Forward/backward distance from the centre of the body to joint 1, where forward is positive and backward is negative
     coxa: Coxa length in millimetres
     femur: Femur length in millimetres
     tibia: Tibia length in millimetres
-
     angles: A list of angles containing the following:
         alpha: Current joint 1 angle in degrees
         beta: Current joint 2 angle in degrees
         gamma: Current joint 3 angle in degrees
 
-    
     Outputs:
-    alpha_new_deg: Resultant joint 1 angle in degrees
+    alpha: Resultant joint 1 angle in degrees
     beta_new_deg: Resultant joint 2 angle in degrees
     gamma_new_deg: Resultant joint 3 angle in degrees
 
+    Conventions:
+    length refers to the distance (in all axes) from joint 2 to the tip of the leg
+    total_length refers to the distance (in all axes) from the origin of the robot's body to the tip of the leg
+    extent refers to the distance (in X and Y) from joint 2 to the tip of the leg
+    total_length refers to the distance (in X and Y) from the origin of the robot's body to the tip of the leg
     """
     # Get the angles in radians. 
     alpha_rad = angles[0] * math.pi / 180
@@ -230,26 +262,42 @@ def right_left_degrees (change, range, coxa, femur, tibia, angles):
     theta_rad = math.asin((tibia * math.sin(gamma_rad)) / length)
     phi_rad = math.pi - beta_rad - theta_rad
 
-    # Calculate the extent: distance from joint 1 to the tip in the X/Y plane, as well as the x, y, and xy distances from joint 1 to the tip
+    # Calculate the height. The vertical height of joint 2 is the same as the height of the origin
+    height = length * math.cos(phi_rad)
+
+    # Calculate the extent: distance from joint 2 to the tip in the X/Y plane, as well as the x, y, and xy distances from joint 1 to the tip
     extent = length * math.sin(phi_rad)
     xy_dist = coxa + extent
     x_dist = xy_dist * math.sin(alpha_rad)
     y_dist = xy_dist * math.cos(alpha_rad)
 
-    # Calculate the movement along the y-axis in millimetres
-    x_dist_new = x_dist + change * range
+    # Now get the total extents and lengths - i.e. from the origin
+    x_total = x_dist + x_offset
+    y_total = y_dist + y_offset
 
-    # Now get the new xy_distance
-    xy_dist_new = math.sqrt(x_dist_new ** 2 + y_dist ** 2)
+    extent_total = math.sqrt(x_total ** 2 + y_total ** 2)
 
-    # This gives us the new coxa angle:
-    alpha_new = alpha_rad * math.acos(y_dist / xy_dist_new) / math.acos(y_dist / xy_dist)  # Take the acos of y/xy instead of the asin of x/xy, since that will give us the >90 degree angle for the back leg
+    # Calculate lambda (the angle between the forward direction and the tip, at the origin): 
+    lambda_rad = math.acos(y_total / extent_total) * x_dist / abs(x_dist)
 
+    # Calculate the change in pitch angle in degrees
+    yaw = change * range
 
-    # Calculate height and extent based on length and phi
-    height = length * math.cos(phi_rad)
-    extent = length * math.sin(phi_rad) # note that extent = xy_dist_new - coxa
+    # Now get the new lambda
+    lambda_new = lambda_rad + (yaw / 180) * math.pi
 
+    # This gives us the new total x and y distances:
+    y_total_new = extent_total * math.cos(lambda_new)
+    x_total_new = math.sqrt(extent_total ** 2 + y_total_new ** 2) * x_dist / abs(x_dist)
+    
+    # Get the new X and Y distances
+    x_dist_new = x_total_new - x_offset
+    y_dist_new = y_total_new - y_offset
+    xy_dist_new = math.sqrt(x_dist_new ** 2 + y_dist_new ** 2)
+
+    # Calculate the resulting new alpha from this. Apply a scaling approach since the original angle includes the sign
+    alpha_new = alpha_rad * math.acos(y_dist_new / xy_dist_new) / math.acos(y_dist / xy_dist) 
+    
     # Calculate the new length (from joint 2 to the tip)
     extent_new = xy_dist_new - coxa
     length_new = math.sqrt(height ** 2 + extent_new ** 2)
