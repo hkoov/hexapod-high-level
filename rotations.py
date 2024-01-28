@@ -288,15 +288,15 @@ def yaw (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
 
     # This gives us the new total x and y distances:
     y_total_new = extent_total * math.cos(lambda_new)
-    x_total_new = math.sqrt(extent_total ** 2 + y_total_new ** 2) * x_dist / abs(x_dist)
-    
+    x_total_new = extent_total * math.sin(lambda_new) 
+
     # Get the new X and Y distances
     x_dist_new = x_total_new - x_offset
     y_dist_new = y_total_new - y_offset
     xy_dist_new = math.sqrt(x_dist_new ** 2 + y_dist_new ** 2)
 
     # Calculate the resulting new alpha from this. Apply a scaling approach since the original angle includes the sign
-    alpha_new = alpha_rad * math.acos(y_dist_new / xy_dist_new) / math.acos(y_dist / xy_dist) 
+    alpha_new = math.acos(y_dist_new / xy_dist_new) * x_dist_new / abs(x_dist_new)
     
     # Calculate the new length (from joint 2 to the tip)
     extent_new = xy_dist_new - coxa

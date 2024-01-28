@@ -58,7 +58,7 @@ pitch_change = 0
 pitch_range = 15     # Specified in degrees
 
 yaw_change = 0
-yaw_range = 15     # Specified in degrees
+yaw_range = 20     # Specified in degrees
 
 # Define parameters for the robot geometry
 coxa = robot_geometry.coxa
@@ -86,7 +86,7 @@ async def helper(dev_path, angle_defaults):
         # Calculate the translations to be applied (all between -1 and 1)
         y_trans_change = 0#1 - 2 * controller.R_y_axis/65535
         x_trans_change = 0#1 - 2 * controller.R_x_axis/65535
-        z_trans_change = 0#1 - 2 * controller.L_y_axis/65535
+        z_trans_change = controller.L_trigger/1023
 
         roll_change = 1 - 2 * controller.R_x_axis/65535
         pitch_change = 1 - 2 * controller.R_y_axis/65535
