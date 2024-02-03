@@ -14,8 +14,8 @@ import copy
 debug_flag = False
 
 # Initialise serial connections. Still need to figure out left/right
-ser1 = serial.Serial('/dev/ttyACM2', 115200, timeout=0.050)
-ser0 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
+ser1 = serial.Serial('/dev/ttyACM1', 115200, timeout=0.050)
+ser0 = serial.Serial('/dev/ttyACM0', 115200, timeout=0.050)
 
 
 # Set the default angles for each motor. Translations and rotations will be applied sequentially to this starting position
