@@ -1,4 +1,5 @@
 import math
+import robot_geometry
 
 """
 Conventions:
@@ -15,7 +16,7 @@ length = distance from
 
 
 
-def up_down_degrees (change, range, coxa, femur, tibia, angles):
+def up_down_degrees (change, angles):
     """
     This function returns new joint 2 and 3 angles based on the desired height change
 
@@ -35,6 +36,11 @@ def up_down_degrees (change, range, coxa, femur, tibia, angles):
     gamma_new_deg: Resultant joint 3 angle in degrees
 
     """
+    # Define the robot geometry
+    coxa = robot_geometry.coxa
+    femur = robot_geometry.femur
+    tibia = robot_geometry.tibia
+
     # Get beta and gamma in radians. 
     beta_rad = angles[1] * math.pi / 180
     gamma_rad = (angles[2] + 25)* math.pi / 180     # Add 25 degrees on to gamma, to allow for the offset of the tip from the tibia
@@ -51,7 +57,7 @@ def up_down_degrees (change, range, coxa, femur, tibia, angles):
     extent = length * math.sin(phi_rad)
 
     # Change the height based on the change fraction and the range
-    height_new = height + change * range
+    height_new = height + change
 
     # This gives us the new length from joint 2 to the tip
     length_new = math.sqrt(height_new**2 + extent**2)
@@ -70,7 +76,7 @@ def up_down_degrees (change, range, coxa, femur, tibia, angles):
     return [angles[0], beta_new_deg, gamma_new_deg]
 
 
-def forward_back_degrees (change, range, coxa, femur, tibia, angles):
+def forward_back_degrees (change, angles):
     """
     This function returns new joint 1, 2, and 3 angles based on the desired forward/back
     movement (i.e., along the Y axis)
@@ -95,6 +101,11 @@ def forward_back_degrees (change, range, coxa, femur, tibia, angles):
     gamma_new_deg: Resultant joint 3 angle in degrees
 
     """
+    # Define the robot geometry
+    coxa = robot_geometry.coxa
+    femur = robot_geometry.femur
+    tibia = robot_geometry.tibia
+
     # Get the angles in radians. 
     alpha_rad = angles[0] * math.pi / 180
     beta_rad = angles[1] * math.pi / 180
@@ -114,7 +125,7 @@ def forward_back_degrees (change, range, coxa, femur, tibia, angles):
     y_dist = xy_dist * math.cos(alpha_rad)
 
     # Calculate the movement along the y-axis in millimetres
-    y_dist_new = y_dist - change * range
+    y_dist_new = y_dist - change
 
     # Now get the new xy_distance
     xy_dist_new = math.sqrt(x_dist ** 2 + y_dist_new ** 2)
@@ -145,7 +156,7 @@ def forward_back_degrees (change, range, coxa, femur, tibia, angles):
     return [alpha_new_deg, beta_new_deg, gamma_new_deg]
 
 
-def right_left_degrees (change, range, coxa, femur, tibia, angles):
+def right_left_degrees (change, angles):
     """
     This function returns new joint 1, 2, and 3 angles based on the desired right/left
     movement (i.e., along the X axis)
@@ -170,6 +181,11 @@ def right_left_degrees (change, range, coxa, femur, tibia, angles):
     gamma_new_deg: Resultant joint 3 angle in degrees
 
     """
+    # Define the robot geometry
+    coxa = robot_geometry.coxa
+    femur = robot_geometry.femur
+    tibia = robot_geometry.tibia
+
     # Get the angles in radians. 
     alpha_rad = angles[0] * math.pi / 180
     beta_rad = angles[1] * math.pi / 180
@@ -189,7 +205,7 @@ def right_left_degrees (change, range, coxa, femur, tibia, angles):
     y_dist = xy_dist * math.cos(alpha_rad)
 
     # Calculate the movement along the y-axis in millimetres
-    x_dist_new = x_dist + change * range
+    x_dist_new = x_dist + change
 
     # Now get the new xy_distance
     xy_dist_new = math.sqrt(x_dist_new ** 2 + y_dist ** 2)

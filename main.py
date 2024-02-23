@@ -84,23 +84,32 @@ async def helper(dev_path, angle_defaults):
         legs = copy.deepcopy(angle_defaults)
 
         # Calculate the translations to be applied (all between -1 and 1)
-        y_trans_change = 0#1 - 2 * controller.R_y_axis/65535
-        x_trans_change = 0#1 - 2 * controller.R_x_axis/65535
-        z_trans_change = controller.L_trigger/1023
+        
+        if controller.L_bumper == 0:
+            y_trans_change = 1 - 2 * controller.R_y_axis/65535
+            x_trans_change = 1 - 2 * controller.R_x_axis/65535
+            z_trans_change = controller.L_trigger/1023
+            roll_change = 0
+            pitch_change = 0
+            yaw_change = 0
 
-        roll_change = 1 - 2 * controller.R_x_axis/65535
-        pitch_change = 1 - 2 * controller.R_y_axis/65535
-        yaw_change = 1 - 2 * controller.L_y_axis/65535
+        elif controller.L_bumper == 1:
+            y_trans_change = 0
+            x_trans_change = 0
+            z_trans_change = 0            
+            roll_change = 1 - 2 * controller.R_x_axis/65535
+            pitch_change = 1 - 2 * controller.R_y_axis/65535
+            yaw_change = 1 - 2 * controller.L_y_axis/65535
 
         for i in range(6):
             leg = legs[i]
-            legs[i][0], legs[i][1], legs[i][2] = translations.forward_back_degrees(y_trans_change, y_trans_range, coxa, femur, tibia, leg)
-            legs[i][0], legs[i][1], legs[i][2] = translations.right_left_degrees(x_trans_change, x_trans_range, coxa, femur, tibia, leg)
-            legs[i][0], legs[i][1], legs[i][2] = translations.up_down_degrees(z_trans_change, z_trans_range, coxa, femur, tibia, leg)
+            legs[i][0], legs[i][1], legs[i][2] = translations.forward_back_degrees(y_trans_change * y_trans_range, leg)
+            legs[i][0], legs[i][1], legs[i][2] = translations.right_left_degrees(x_trans_change * x_trans_range, leg)
+            legs[i][0], legs[i][1], legs[i][2] = translations.up_down_degrees(z_trans_change * z_trans_range, leg)
 
-            legs[i][0], legs[i][1], legs[i][2] = rotations.roll(roll_change, roll_range, joint_offsets[i][0], joint_offsets[i][1], coxa, femur, tibia, leg)
-            legs[i][0], legs[i][1], legs[i][2] = rotations.pitch(pitch_change, pitch_range, joint_offsets[i][0], joint_offsets[i][1], coxa, femur, tibia, leg)
-            legs[i][0], legs[i][1], legs[i][2] = rotations.yaw(yaw_change, yaw_range, joint_offsets[i][0], joint_offsets[i][1], coxa, femur, tibia, leg)
+            legs[i][0], legs[i][1], legs[i][2] = rotations.roll(roll_change * roll_range, joint_offsets[i][0], joint_offsets[i][1], leg)
+            legs[i][0], legs[i][1], legs[i][2] = rotations.pitch(pitch_change * pitch_range, joint_offsets[i][0], joint_offsets[i][1], leg)
+            legs[i][0], legs[i][1], legs[i][2] = rotations.yaw(yaw_change * yaw_range, joint_offsets[i][0], joint_offsets[i][1], leg)
 
         
         # Finally write the angles to the motors

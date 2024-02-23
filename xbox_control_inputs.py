@@ -62,15 +62,15 @@ class controller:
         elif event.code == 308:
             self.Y_key = event.value
         elif event.code == 311:
-            self.L_bumper = event.value
-        elif event.code == 310:
             self.R_bumper = event.value
+        elif event.code == 310:
+            self.L_bumper = event.value
         
         # Set the trigger values equal to the event values (0 to 1023)
         elif event.code == 9:
-            self.L_trigger = event.value
-        elif event.code == 10:
             self.R_trigger = event.value
+        elif event.code == 10:
+            self.L_trigger = event.value
         
         # Set the appropriate D-pad value to 1 depending on the event value, otherwise reset to 0 if the event value is zero
         elif event.code == 17:

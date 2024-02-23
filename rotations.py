@@ -1,4 +1,5 @@
 import math
+import robot_geometry
 
 """
 Conventions:
@@ -14,7 +15,7 @@ For the rotations, the frame of reference moves with the body
 
 
 
-def roll (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
+def roll (change, x_offset, y_offset, angles):
     """
     This function returns new joint 1, 2 and, 3 angles based on the desired roll angle
 
@@ -42,6 +43,11 @@ def roll (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     extent refers to the distance (in X and Y) from joint 2 to the tip of the leg
     total_length refers to the distance (in X and Y) from the origin of the robot's body to the tip of the leg
     """
+    # Define the robot geometry
+    coxa = robot_geometry.coxa
+    femur = robot_geometry.femur
+    tibia = robot_geometry.tibia
+
     # Get the angles in radians. 
     alpha_rad = angles[0] * math.pi / 180
     beta_rad = angles[1] * math.pi / 180
@@ -83,7 +89,7 @@ def roll (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     psi_y = math.asin(y_total / yz_length_total)
 
     # Calculate the change in roll angle in degrees
-    roll = change * range
+    roll = change
 
     # Now get the new psi_x
     psi_x_new = psi_x + (roll / 180) * math.pi
@@ -118,7 +124,7 @@ def roll (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     return [alpha_new_deg, beta_new_deg, gamma_new_deg]
 
 
-def pitch (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
+def pitch (change, x_offset, y_offset, angles):
     """
     This function returns new joint 1, 2 and, 3 angles based on the desired pitch angle
 
@@ -146,6 +152,11 @@ def pitch (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     extent refers to the distance (in X and Y) from joint 2 to the tip of the leg
     total_length refers to the distance (in X and Y) from the origin of the robot's body to the tip of the leg
     """
+    # Define the robot geometry
+    coxa = robot_geometry.coxa
+    femur = robot_geometry.femur
+    tibia = robot_geometry.tibia
+
     # Get the angles in radians. 
     alpha_rad = angles[0] * math.pi / 180
     beta_rad = angles[1] * math.pi / 180
@@ -187,7 +198,7 @@ def pitch (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     psi_y = math.asin(y_total / yz_length_total)
 
     # Calculate the change in pitch angle in degrees
-    pitch = change * range
+    pitch = change
 
     # Now get the new psi_y
     psi_y_new = psi_y + (pitch / 180) * math.pi
@@ -222,7 +233,7 @@ def pitch (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     return [alpha_new_deg, beta_new_deg, gamma_new_deg]
 
 
-def yaw (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
+def yaw (change, x_offset, y_offset, angles):
     """
     This function returns new joint 1, 2 and, 3 angles based on the desired yaw angle
 
@@ -250,6 +261,11 @@ def yaw (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     extent refers to the distance (in X and Y) from joint 2 to the tip of the leg
     total_length refers to the distance (in X and Y) from the origin of the robot's body to the tip of the leg
     """
+    # Define the robot geometry
+    coxa = robot_geometry.coxa
+    femur = robot_geometry.femur
+    tibia = robot_geometry.tibia
+    
     # Get the angles in radians. 
     alpha_rad = angles[0] * math.pi / 180
     beta_rad = angles[1] * math.pi / 180
@@ -281,7 +297,7 @@ def yaw (change, range, x_offset, y_offset, coxa, femur, tibia, angles):
     lambda_rad = math.acos(y_total / extent_total) * x_dist / abs(x_dist)
 
     # Calculate the change in pitch angle in degrees
-    yaw = change * range
+    yaw = change
 
     # Now get the new lambda
     lambda_new = lambda_rad + (yaw / 180) * math.pi

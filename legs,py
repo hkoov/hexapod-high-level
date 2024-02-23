@@ -1,0 +1,73 @@
+import robot_geometry
+import rotations
+import translations
+
+
+class leg:
+    def __init__(self, side, leg_number):
+	# define a leg with its joint angles
+        if side == "R":
+            side_multiplier = 1
+        else:
+            side_multiplier = -1
+        
+        self.alpha = side_multiplier *  robot_geometry.alpha_default[leg_number - 1]    
+        # Get the correct angle for joint 1 based on the leg's position. This needs to be negative if the leg is on the left
+        self.beta = robot_geometry.beta_default
+        self.gamma = robot_geometry.gamma_default
+        
+        self.coxa = robot_geometry.coxa
+        self.femur = robot_geometry.femur
+        self.tibia = robot_geometry.tibia
+
+        if side == "L" and leg_number == 1:
+            self.x_offset = robot_geometry.x_offsets[1]
+        elif side == "L" and leg_number == 2:
+            self.x_offset = robot_geometry.x_offsets[0]
+        elif side == "L" and leg_number == 3:
+            self.x_offset = robot_geometry.x_offsets[1]
+        elif side == "R" and leg_number == 1:
+            self.x_offset = robot_geometry.x_offsets[2]
+        elif side == "R" and leg_number == 2:
+            self.x_offset = robot_geometry.x_offsets[3]
+        elif side == "R" and leg_number == 3:
+            self.x_offset = robot_geometry.x_offsets[2]
+        
+        if leg_number == 1:
+            self.y_offset = robot_geometry.y_offsets[0]
+        elif leg_number == 2:
+            self.y_offset = robot_geometry.y_offsets[1]
+        elif leg_number == 3:
+            self.y_offset = robot_geometry.y_offsets[2]
+
+
+
+
+
+    def translate_x(self, translation):
+        # Translate the leg in the x-axis by the desired amount in mm
+        self.alpha, self.beta, self.gamma = translations.right_left_degrees(translation, 
+                                                                            [self.alpha, self.beta, self.gamma])
+
+    def translate_y(self, translation):
+        # Translate the leg in the y-axis by the desired amount in mm
+        self.alpha, self.beta, self.gamma = translations.forward_back_degrees_degrees(translation, 
+                                                                                      [self.alpha, self.beta, self.gamma])
+
+    def translate_z(self, translation):
+        # Translate the leg in the z-axis by the desired amount in mm    
+        self.alpha, self.beta, self.gamma = translations.up_down_degrees_degrees(translation, 
+                                                                                 [self.alpha, self.beta, self.gamma])
+        
+    def rotate_roll(self, rotation):
+        # Rotate the leg about the body with the desired roll angle in degrees   
+        self.alpha, self.beta, self.gamma = rotations.roll(rotation, self.x_offset, self.y_offset, [self.alpha, self.beta, self.gamma])
+        
+    def rotate_pitch(self, rotation):
+        # Rotate the leg about the body with the desired pitch angle in degrees   
+        self.alpha, self.beta, self.gamma = rotations.pitch(rotation, self.x_offset, self.y_offset, [self.alpha, self.beta, self.gamma])
+    
+    def rotate_roll(self, rotation):
+        # Rotate the leg about the body with the desired yaw angle in degrees   
+        self.alpha, self.beta, self.gamma = rotations.yaw(rotation, self.x_offset, self.y_offset, [self.alpha, self.beta, self.gamma])
+        
